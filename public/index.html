@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8' />
+    <link rel="shortcut icon" href="favicon.ico"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+    <meta name="description" content="你画我猜 实验版，鉴于本人十分喜欢这款游戏，但市面上没有一个稳定、流畅的版本，无奈只能自己来做。如果你想加入，可以与我联系：jiacai2050@gmail.com" />
+
+
+    <title>你画我猜 Alpha</title>
+    <style type="text/css">
+        canvas {
+            border: 2px solid black;
+            padding-left: 0;
+            padding-right: 0;
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+        }
+
+        img {
+            display: block;
+            margin: 0 auto;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 11px;
+            color: #ccc;
+        }
+
+        footer a {
+            color: inherit;
+        }
+
+        .color-tools {
+            text-align: center;
+        }
+
+        .color-tools div {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+
+            margin-right: 10px;
+        }
+
+        .btn-tools {
+            text-align: center;
+        }
+
+        .btn-tools input {
+            height: 30px;
+            width: 60px;
+        }
+    </style>
+    <script type="text/javascript">
+        function draw() {
+            let canvas = document.getElementById('tutorial');
+            canvas.width = window.innerWidth * 0.95;
+            canvas.height = window.innerHeight * 0.6;
+            var ctx = canvas.getContext('2d');
+            let usePencil = true;
+            let useEraser = false;
+
+            canvas.ontouchstart = function (e) {
+                ctx.beginPath();
+                if (usePencil) {
+                    let ex = e.clientX || e.touches[0].clientX;
+                    let ey = e.clientY || e.touches[0].clientY;
+                    let x = ex - canvas.offsetLeft;
+                    let y = ey - canvas.offsetTop;
+                    ctx.moveTo(x, y);
+                }
+            };
+            canvas.ontouchmove = function (e) {
+                let ex = e.clientX || e.touches[0].clientX;
+                let ey = e.clientY || e.touches[0].clientY;
+                let x = ex - canvas.offsetLeft;
+                let y = ey - canvas.offsetTop;
+                if (usePencil) {
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                } else if (useEraser) {
+                    let radius = 5;
+                    ctx.arc(x, y, radius, 0, Math.PI * 2, true);
+                    ctx.fill();
+                }
+            };
+
+            let chooseColor = document.getElementById("choose-color");
+            let predefinedColors = ["fuchsia", "darkorchid", "red", "green", "blue", "black", "teal", "orange"];
+            for (let c of predefinedColors) {
+                let div = document.createElement("div");
+                div.style['background-color'] = c;
+                chooseColor.appendChild(div);
+            }
+            chooseColor.onclick = function (e) {
+                ctx.strokeStyle = e.target.style['background-color'];
+                ctx.globalCompositeOperation = 'source-over';
+                usePencil = true;
+                useEraser = false;
+            }
+            document.getElementById('pencil').onclick = function (e) {
+                ctx.globalCompositeOperation = 'source-over';
+                usePencil = true;
+                useEraser = false;
+            };
+            document.getElementById('eraser').onclick = function (e) {
+                ctx.globalCompositeOperation = 'destination-out';
+                usePencil = false;
+                useEraser = true;
+            };
+
+
+            document.getElementById('rollback').onclick = function (e) {
+                if (confirm("确定吗？")) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            };
+            let underconstruction = document.getElementById('underconstruction');
+            underconstruction.addEventListener('click', function (e) {
+                alert("客官不要着急😁...")
+            });
+
+            // disable page scolling
+            // https://coderwall.com/p/w_likw/enable-disable-scrolling-in-iphone-ipad-s-safari
+            document.ontouchmove = function (e) { e.preventDefault(); return false; }
+        }
+    </script>
+</head>
+
+<body onload="draw()">
+    <canvas id="tutorial"></canvas>
+    <hr/>
+    <div class="color-tools" id="choose-color">
+
+    </div>
+    <hr/>
+    <div class="btn-tools">
+        <input type="button" id="pencil" value="画笔"></input>
+        <input type="button" id="eraser" value="橡皮擦"></input>
+        <input type="button" id="rollback" value="清空画板"></input>
+    </div>
+
+
+
+    <img id="underconstruction" width="50%" height="50%" src="img/underconstruction.jpg" />
+
+
+    <footer>
+        <p>2017 &copy; <a target="_blank" href="http://liujiacai.net/"> liujiacai.net</a>. All Rights Reserved. Powered by
+            <a target="_blank" href="https://leancloud.cn/">LeanCloud</a>.</p>
+    </footer>
+
+
+</body>
+
+</html>
