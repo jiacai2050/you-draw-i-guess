@@ -1,7 +1,19 @@
 {
   "name": "you-draw-i-guess",
   "version": "1.0.0",
+  "description": "Alpha trial of game you draw I guess",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "engines": {
+    "node": "7.10.0"
+  },
+  "author": "Jiacai Liu <jiacai2050@gmailcom> (http://liujiacai.net)",
+  "license": "Apache License",
   "dependencies": {
-    "node-static": "^0.7.9"
+    "koa": "^2.2.0",
+    "koa-ejs": "^4.0.0",
+    "koa-router": "^7.2.0",
+    "koa-static": "^3.0.0"
   }
 }
