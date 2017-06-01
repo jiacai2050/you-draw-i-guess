@@ -1,0 +1,36 @@
+h4 {
+text-align: center;
+}
+
+canvas {
+border: 2px solid black;
+padding-left: 0;
+padding-right: 0;
+margin-left: auto;
+margin-right: auto;
+display: block;
+}
+
+img {
+display: block;
+margin: 0 auto;
+}
+.color-tools {
+text-align: center;
+}
+
+.color-tools div {
+display: inline-block;
+width: 30px;
+height: 30px;
+margin-right: 10px;
+}
+
+.btn-tools {
+text-align: center;
+}
+
+.btn-tools input {
+height: 30px;
+width: 60px;
+}

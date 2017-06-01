@@ -1,0 +1,20 @@
+<link rel="stylesheet" href="/css/paint.css" />
+<script type="text/javascript" src="/js/paint.js"></script>
+<script type="text/javascript">
+    window.document.body.onload = () => {
+        draw();
+    }
+</script>
+
+<h4><%= name %> by <%= createBy %></h4>
+<canvas id="tutorial"></canvas>
+<hr/>
+<div class="color-tools" id="choose-color">
+
+</div>
+<hr/>
+<div class="btn-tools">
+    <input type="button" id="pencil" value="画笔"></input>
+    <input type="button" id="eraser" value="橡皮"></input>
+    <input type="button" id="rollback" value="清空画板"></input>
+</div>

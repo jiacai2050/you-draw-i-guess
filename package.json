@@ -11,9 +11,14 @@
   "author": "Jiacai Liu <jiacai2050@gmailcom> (http://liujiacai.net)",
   "license": "Apache License",
   "dependencies": {
+    "config": "^1.26.1",
     "koa": "^2.2.0",
+    "koa-body": "^2.0.1",
     "koa-ejs": "^4.0.0",
     "koa-router": "^7.2.0",
-    "koa-static": "^3.0.0"
+    "koa-static": "^3.0.0",
+    "koa-websocket": "^4.0.0",
+    "leancloud-realtime": "^3.4.1",
+    "leancloud-storage": "^2.4.0"
   }
 }

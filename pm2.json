@@ -1,0 +1,12 @@
+{
+  "apps": [
+    {
+      "name": "ydig",
+      "script": "./app.js",
+      "instances": 1,
+      "exec_mode": "cluster",
+      "ignore_watch" : ["node_modules", "assets"],
+      "watch": true
+    }
+  ]
+}
