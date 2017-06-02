@@ -1,37 +1,55 @@
 const router = require('koa-router')();
 const koaBody = require('koa-body')();
-const AV = require('leancloud-storage');
+const config = require('config');
+const lc = require('../lib/leancloud');
 
 router.get('/:roomId', async (ctx) => {
-    let query = new AV.Query('Room');
-    await query.get(ctx.params.roomId).then(async (room) => {
+    try {
+        let query = new lc.Query('Room');
+        let room = await query.get(ctx.params.roomId);
+        let IMClient = await lc.realtime.createIMClient(ctx.session.userName);
+        let conv = await IMClient.getConversation(room.get('convId'));
+        await conv.join();
+        
         await ctx.render('paint', {
-            'createBy':  room.get('createBy'),
+            'createBy': room.get('createBy'),
             'name': room.get('name'),
-            'id': room.get('objectId')
+            'id': room.get('objectId'),
+            'convId': room.get('convId'),
+            'lcAppId': config.get('leancloud.appId'),
+            'currentUserName': ctx.session.userName
         });
-    }, (err) => {
+    } catch (err) {
         console.error(err);
         ctx.response.body = `roomId = ${ctx.params.roomId} not found!`;
-    });
-
+    };
 });
 
 router.post('/', koaBody, async (ctx) => {
     let roomName = ctx.request.body['roomName'];
-    let userName = ctx.request.body['userName'];
 
-    let Room = AV.Object.extend('Room');
-    let room = new Room();
-    room.set('name', roomName);
-    room.set('createBy', userName);
-    await room.save().then((room) => {
-        console.log(`new room id: ${room.id}`);
+    try {
+        let IMClient = await lc.realtime.createIMClient(ctx.session.userName);
+        let conv = await IMClient.createConversation({
+            'name': roomName,
+            'transient': true,
+        });
+
+        let Room = lc.Object.extend('Room');
+        let room = new Room();
+        room.set('name', roomName);
+        room.set('createBy', ctx.session.userName);
+        room.set('convId', conv.id);
+        // Error: Converting circular structure to JSON
+        // room.relation('conv').add(conv);
+        room = await room.save();
+
         ctx.body = { 'roomId': room.id, 'code': 0 };
-    }, (err) => {
-        console.error(`new room error ${room.message}`);
-        ctx.body = { 'errMsg': room.message, 'code': 10000 };
-    });
+    }
+    catch (err) {
+        console.error(err);
+        ctx.body = { 'errMsg': `Ooops! ${err.message}`, 'code': 10000 };
+    };
 
 });
 

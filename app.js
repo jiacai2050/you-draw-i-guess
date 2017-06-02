@@ -7,14 +7,12 @@ const path = require('path');
 const routers = require('./routers');
 const config = require('config');
 const AV = require('leancloud-storage');
+const session = require('koa-session');
 
-AV.init({
-  'appId': config.get('leancloud.appId'),
-  'appKey': config.get('leancloud.appKey')
-});
 
 const app = new Koa();
 
+app.keys = ['leancloud'];
 app.proxy = true;
 
 render(app, {
@@ -33,9 +31,22 @@ app.use(async (ctx, next) => {
   const start = new Date();
   await next();
   const ms = new Date() - start;
-  console.log(`${start}<||>${ctx.ip}<||>${ctx.method}<||>${ctx.url}<||>${ms}ms<||>${ctx.headers['user-agent']}`);
-}).use(routers.routes())
+  console.log(`${start}<||>${ctx.headers['x-real-ip']}<||>${ctx.method}<||>${ctx.url}<||>${ms}ms<||>${ctx.headers['user-agent']}`);
+}).use(serve(path.join(__dirname, 'assets')))
+  .use(async (ctx, next) => {
+    console.log(ctx.session);
+    if (ctx.path === '/login' || ctx.headers['host'].startsWith('docker')) {
+      await next();
+    } else if (!ctx.session.userName) {
+      ctx.redirect(`/login?from=${ctx.path}`);
+    } else {
+      await next();
+    }
+  })
+  .use(session({
+    'key': 'koa:s'
+  }, app))
+  .use(routers.routes())
   .use(routers.allowedMethods())
-  .use(serve(path.join(__dirname, 'assets')))
-  .use(koaBody())
+
   .listen(parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || 3000));

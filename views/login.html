@@ -1,0 +1,45 @@
+<link rel="stylesheet" href="/css/index.css" />
+<script type="text/javascript">
+    window.onload = () => {
+        let loginBtn = document.getElementById('login');
+        let userNameInput = document.getElementById('userName');
+        loginBtn.onclick = (e) => {
+            if (userNameInput.value.trim() === '') {
+                alert(`名字不能为空！！`);
+                return false;
+            }
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.onreadystatechange = () => {
+                if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+                    if (xmlhttp.status < 300) {
+                        let resp = JSON.parse(xmlhttp.responseText);
+                        if (resp.code == 0) {
+                            window.location = "<%= from %>";
+                        } else {
+                            alert(resp.msg);
+                        }
+                    } else {
+                        alert('something else other than 200 was returned');
+                    }
+                }
+            };
+
+            xmlhttp.open("POST", "/login", true);
+            xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            xmlhttp.send(JSON.stringify({
+                "userName": userNameInput.value
+            }));
+        }
+    }
+
+</script>
+
+<div class="container">
+    <div class="form">
+        <p><input id="userName" type="text" placeholder="请输入用户名..."></input>
+        </p>
+        <div class="btn-tools">
+            <input id="login" type="button" value="登录">
+        </div>
+    </div>
+</div>

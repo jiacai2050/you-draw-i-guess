@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const api = require('koa-router')();
-const AV = require('leancloud-storage');
+const lc = require('../lib/leancloud');
 
 let routerFiles = fs.readdirSync(__dirname);
 for (let rf of routerFiles) {
@@ -12,34 +12,30 @@ for (let rf of routerFiles) {
   }
 }
 
-
-
 api.get('/', async (ctx) => {
-  let cql = 'select * from Room limit 5  order by updatedAt desc';
-  await AV.Query.doCloudQuery(cql).then(async (data) => {
-    let rooms = [];
-    for (let room of data.results) {
+  let cql = 'select * from Room limit 5 order by updatedAt desc';
+  let rooms = [];
+  try {
+    let qryResult = await lc.Query.doCloudQuery(cql);
+    for (let room of qryResult.results) {
       rooms.push({
         'createBy': room.get('createBy'),
         'name': room.get('name'),
         'id': room.get('objectId')
       });
     }
-    await ctx.render('index', { 'rooms': rooms });
-  }, async (error) => {
-    await ctx.render('index', { 'rooms': [] });
+  } catch (error) {
     console.error(error);
-  });
-
+  } finally {
+    await ctx.render('index', {
+      'rooms': rooms,
+      'currentUserName': ctx.session.userName
+    });
+  }
 });
-api.get('/ws', async (ctx) => {
-  ctx.websocket.send('Hello World');
-  ctx.websocket.on('message', function (message) {
-    // do something with the message from client
-    console.log(message);
-    ctx.websocket.send(message);
-  });
+api.get('/logout', async (ctx) => {
+  ctx.session = null;
+  ctx.body = { 'code': 0 };
 });
-
 
 module.exports = api;

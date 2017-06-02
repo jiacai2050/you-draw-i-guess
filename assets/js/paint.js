@@ -2,9 +2,9 @@
 function draw() {
     let canvas = document.getElementById('tutorial');
     canvas.width = window.innerWidth * 0.95;
-    canvas.height = window.innerHeight * 0.6;
+    canvas.height = window.innerHeight * 0.5;
     let ctx = canvas.getContext('2d');
-    
+
     const FLAG_PENCEL = 1;
     const FLAG_ERASER = 2;
     //  1  pencil
@@ -45,7 +45,7 @@ function draw() {
     canvas.onmousedown = canvas.ontouchstart;
     canvas.onmousemove = canvas.ontouchmove;
     canvas.onmouseup = canvas.ontouchend;
-    
+
     let chooseColor = document.getElementById("choose-color");
     let predefinedColors = ["fuchsia", "darkorchid", "red", "green", "blue", "black", "teal", "orange"];
     for (let c of predefinedColors) {
@@ -59,6 +59,10 @@ function draw() {
         lastStatus = FLAG_PENCEL;
         status = 0;
     }
+    // disable page scolling
+    // https://coderwall.com/p/w_likw/enable-disable-scrolling-in-iphone-ipad-s-safari
+    document.ontouchmove = function (e) { e.preventDefault(); return false; }
+
     document.getElementById('pencil').onclick = function (e) {
         ctx.globalCompositeOperation = 'source-over';
         lastStatus = FLAG_PENCEL;
@@ -70,14 +74,14 @@ function draw() {
         status = 0;
     };
 
-
     document.getElementById('rollback').onclick = function (e) {
         if (confirm("确定吗？")) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
     };
-
-    // disable page scolling
-    // https://coderwall.com/p/w_likw/enable-disable-scrolling-in-iphone-ipad-s-safari
-    document.ontouchmove = function (e) { e.preventDefault(); return false; }
+    document.getElementById('gohome').onclick = function (e) {
+        if (confirm("确定返回首页吗？")) {
+            window.location = '/';
+        }
+    };
 }

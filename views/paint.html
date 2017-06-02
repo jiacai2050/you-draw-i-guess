@@ -1,20 +1,63 @@
 <link rel="stylesheet" href="/css/paint.css" />
+<script type="text/javascript" src="/js/realtime.browser.min.js"></script>
 <script type="text/javascript" src="/js/paint.js"></script>
+<script type="text/javascript" src="/js/util.js"></script>
+
 <script type="text/javascript">
     window.document.body.onload = () => {
+        document.title = '<%= name %> by <%= createBy %>';
         draw();
+        var Realtime = AV.Realtime;
+        var TextMessage = AV.TextMessage;
+        const realtime = new Realtime({
+            appId: '<%=lcAppId%>',
+            region: 'cn', // 美国节点为 "us"
+            noBinary: true,
+        });
+        let msgInput = document.getElementById('message');
+        let dialogDiv = document.getElementById('dialog');
+
+        realtime.createIMClient('<%= currentUserName %>').then(function (client) {
+            client.on('message', function (message, conversation) {
+                let marquee = document.createElement("marquee");
+                marquee.setAttribute('loop', 1);
+                marquee.setAttribute('onfinish', 'removeMe(this);');
+                marquee.appendChild(document.createTextNode(`${message.from}: ${message.text}`));
+                dialogDiv.appendChild(marquee);
+            });
+        }).catch(console.error);
+        document.getElementById('send').onclick = function (e) {
+            if (msgInput.value.trim() !== '') {
+                realtime.createIMClient('<%= currentUserName %>').then(function (client) {
+                    return client.getConversation('<%= convId %>');
+                }).then(function (conversation) {
+                    return conversation.join();
+                }).then(function (conversation) {
+                    conversation.send(new AV.TextMessage(msgInput.value));
+                }).then(function (message) {
+                }).catch(console.error.bind(console));
+            }
+        };
     }
+
 </script>
-
-<h4><%= name %> by <%= createBy %></h4>
-<canvas id="tutorial"></canvas>
-<hr/>
-<div class="color-tools" id="choose-color">
-
+<div class="main">
+    <canvas id="tutorial"></canvas>
+    <hr/>
+</div>
+<div class="form">
+    <input type="input" id="message" placeholder="you guess it..."></input>
+    <input type="button" id="send" value="发送"></input>
 </div>
 <hr/>
+<div class="color-tools" id="choose-color"></div>
 <div class="btn-tools">
     <input type="button" id="pencil" value="画笔"></input>
     <input type="button" id="eraser" value="橡皮"></input>
-    <input type="button" id="rollback" value="清空画板"></input>
+    <input type="button" id="rollback" value="清空"></input>
+    <input type="button" id="gohome" value="首页"></input>
+</div>
+
+<div id="dialog">
+    <!--<marquee loop=1></marquee>-->
 </div>

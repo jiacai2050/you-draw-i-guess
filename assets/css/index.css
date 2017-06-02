@@ -1,7 +1,7 @@
 input {
     background-color: green;
     border: none;
-    /*color: white;*/
+    color: white;
     padding: 15px 32px;
     text-align: center;
     text-decoration: none;
@@ -23,4 +23,10 @@ ul:before{
     content:attr(aria-label);
     font-weight:bold;
     margin-left:-15px;
+}
+#logout {
+     position:absolute;
+     top:0;
+     right:0;
+     color: cornsilk;
 }
