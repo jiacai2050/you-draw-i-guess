@@ -44,7 +44,7 @@ api.get('/logout', async (ctx) => {
     }
   } catch (e) {
     console.error(e);
-    ctx.body = { 'code': 20000, 'errMsg': `退出失败:${e.message}` };
+    ctx.body = { 'code': 10000, 'errMsg': `退出失败:${e.message}` };
   }
 });
 

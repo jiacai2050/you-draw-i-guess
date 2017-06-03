@@ -29,8 +29,8 @@
         // target.appendChild(marquee);
         $('body').barrager({
             'info': bullet,
-            'close':true
-         });
+            'close': true
+        });
 
     }
     realtime.createIMClient('<%= currentUserName %>').then(function (client) {
@@ -46,8 +46,7 @@
             let points = JSON.parse(message.text);
             if (Array.isArray(points)) {
                 let startPoint = points.shift();
-                status = startPoint.status;
-                ctx.strokeStyle = startPoint.color;
+                
                 touchStartHandler({
                     clientX: startPoint.x * canvas.width,
                     clientY: startPoint.y * canvas.height,
@@ -63,7 +62,25 @@
                 }
                 touchEndHandler({ remote: true });
             } else {
-                addBulletScreens(document.getElementById('dialog'), `${message.from}: ${message.text}`);
+                let e = points;
+                if (e.type === 'msg') {
+                    addBulletScreens(document.getElementById('dialog'), `${message.from}: ${message.text}`);
+                } else if (e.type === 'event') {
+                    let ehs = {
+                        'pencil': usePencil,
+                        'eraser': useEraser,
+                        'rollback': useRollback,
+                        'color': useColor
+                    };
+                    if (e.src === 'color') {
+                        ehs[e.src]({
+                            'remote': true,
+                            'color': e.value
+                         });
+                    } else {
+                        ehs[e.src]({ 'remote': true });
+                    }
+                }
             }
         });
         return client.getConversation('<%= convId %>');
@@ -76,7 +93,10 @@
 
     function sendMsg(msg) {
         if (msg.trim() !== '') {
-            conv.send(new AV.TextMessage(JSON.stringify(msg))).then(function (message) {
+            conv.send(new AV.TextMessage(JSON.stringify({
+                'type': 'msg',
+                'value': msg
+            }))).then(function (message) {
                 console.log(message.text + " send!");
             }).catch(console.error.bind(console));
         }

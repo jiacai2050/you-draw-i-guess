@@ -27,6 +27,7 @@ router.post('/', koaBody, async (ctx) => {
     try {
         let IMClient = await lc.realtime.createIMClient(ctx.session.userName);
         let conv = await IMClient.createConversation({
+            'members': [],
             'name': roomName,
             // 'transient': true,
         });

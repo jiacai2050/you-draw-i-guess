@@ -51,9 +51,7 @@ function touchMoveHandler(e) {
     if (status > 0 && !e.remote) {
         let p = {
             x: x / canvas.width,
-            y: y / canvas.height,
-            status: status,
-            color: ctx.strokeStyle
+            y: y / canvas.height
         };
         points.push(p);
         if (points.length > 20) {
@@ -74,6 +72,69 @@ function touchEndHandler(e) {
         }).catch(console.error.bind(console));
         points = [];
     }
+}
+function usePencil(e) {
+    ctx.globalCompositeOperation = 'source-over';
+    lastStatus = FLAG_PENCEL;
+    status = 0;
+    if (!e.remote) {
+        conv.send(new AV.TextMessage(JSON.stringify({
+            "type": 'event',
+            'src': 'pencil'
+        }))).then(function (message) {
+            console.log(message.text + " send!");
+        }).catch(console.error.bind(console));
+    }
+
+};
+function useEraser(e) {
+    ctx.globalCompositeOperation = 'destination-out';
+    lastStatus = FLAG_ERASER;
+    status = 0;
+    if (!e.remote) {
+        conv.send(new AV.TextMessage(JSON.stringify({
+            "type": 'event',
+            'src': 'eraser'
+        }))).then(function (message) {
+            console.log(message.text + " send!");
+        }).catch(console.error.bind(console));
+    }
+
+};
+function useRollback(e) {
+    if (!e.remote) {
+        if (confirm("确定吗？")) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            conv.send(new AV.TextMessage(JSON.stringify({
+                "type": 'event',
+                'src': 'rollback'
+            }))).then(function (message) {
+                console.log(message.text + " send!");
+            }).catch(console.error.bind(console));
+        }
+    } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+};
+function useColor(e) {
+    if (!e.remote) {
+        ctx.strokeStyle = e.target.style['background-color'];
+
+        conv.send(new AV.TextMessage(JSON.stringify({
+            "type": 'event',
+            'src': 'color',
+            'value': e.target.style['background-color']
+        }))).then(function (message) {
+            console.log(message.text + " send!");
+        }).catch(console.error.bind(console));
+    } else {
+        ctx.strokeStyle = e.color;
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    lastStatus = FLAG_PENCEL;
+    status = 0;
+
 }
 function draw() {
     canvas = document.getElementById('tutorial');
@@ -96,32 +157,16 @@ function draw() {
         div.style['background-color'] = c;
         chooseColor.appendChild(div);
     }
-    chooseColor.onclick = function (e) {
-        ctx.strokeStyle = e.target.style['background-color'];
-        ctx.globalCompositeOperation = 'source-over';
-        lastStatus = FLAG_PENCEL;
-        status = 0;
-    }
+    chooseColor.onclick = useColor;
+
     // disable page scolling
     // https://coderwall.com/p/w_likw/enable-disable-scrolling-in-iphone-ipad-s-safari
     document.ontouchmove = function (e) { e.preventDefault(); return false; }
 
-    document.getElementById('pencil').onclick = function (e) {
-        ctx.globalCompositeOperation = 'source-over';
-        lastStatus = FLAG_PENCEL;
-        status = 0;
-    };
-    document.getElementById('eraser').onclick = function (e) {
-        ctx.globalCompositeOperation = 'destination-out';
-        lastStatus = FLAG_ERASER;
-        status = 0;
-    };
+    document.getElementById('pencil').onclick = usePencil;
+    document.getElementById('eraser').onclick = useEraser;
+    document.getElementById('rollback').onclick = useRollback;
 
-    document.getElementById('rollback').onclick = function (e) {
-        if (confirm("确定吗？")) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-    };
     document.getElementById('gohome').onclick = function (e) {
         if (confirm("确定返回首页吗？")) {
             window.location = '/';

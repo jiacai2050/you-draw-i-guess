@@ -16,6 +16,12 @@
                 window.location = `/rooms/${resp.roomId}`; 
             })
         }
+        roomNameInput.onkeypress = function (e) {
+            var key = e.which || e.keyCode;
+            if (key === 13) { // 13 is enter
+                createRoomBtn.click(e);
+            }
+        };
         document.getElementById("logout").onclick = () => {
             if(confirm('确认退出嘛 ？'))
             getAjax('/logout', (resp) => {
