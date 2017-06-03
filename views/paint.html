@@ -1,6 +1,9 @@
 <link rel="stylesheet" href="/css/paint.css" />
+<link rel="stylesheet" href="/css/barrager.css" />
 <script type="text/javascript" src="/js/realtime.browser.min.js"></script>
 <script type="text/javascript" src="/js/paint.js"></script>
+<script type="text/javascript" src="/js/jquery-3.2.1.min.js"></script>
+<script type="text/javascript" src="/js/jquery.barrager.js"></script>
 <script type="text/javascript" src="/js/util.js"></script>
 
 <script type="text/javascript">
@@ -13,9 +16,32 @@
     });
     let imClient = null;
     let conv = null;
+    let addBulletScreens = (target, bullet) => {
+        // let marquee = document.createElement("marquee");
+        // // marquee.setAttribute('loop', 1);
+        // // marquee.setAttribute('onfinish', 'removeMe(this);');
+        // marquee.loop = 1;
+        // marquee.addEventListener('finish', function(e) {
+        //     alert(123);
+        //     // console.log(e.target);
+        // }, true);
+        // marquee.appendChild(document.createTextNode(bullet));
+        // target.appendChild(marquee);
+        $('body').barrager({
+            'info': bullet,
+            'close':true
+         });
+
+    }
     realtime.createIMClient('<%= currentUserName %>').then(function (client) {
         console.log(`client build ok...`);
         imClient = client;
+        imClient.on('membersjoined', (payload, conversation) => {
+            if (conversation.id === '<%= convId %>') {
+                addBulletScreens(document.getElementById('dialog'), `${payload.members} 加入`);
+            }
+            console.log(payload.members, payload.invitedBy, 'joined');
+        });
         imClient.on('message', function (message, conversation) {
             let points = JSON.parse(message.text);
             if (Array.isArray(points)) {
@@ -37,20 +63,14 @@
                 }
                 touchEndHandler({ remote: true });
             } else {
-                let marquee = document.createElement("marquee");
-                marquee.setAttribute('loop', 1);
-                marquee.setAttribute('onfinish', 'removeMe(this);');
-                marquee.appendChild(document.createTextNode(`${message.from}: ${message.text}`));
-                document.getElementById('dialog').appendChild(marquee);
+                addBulletScreens(document.getElementById('dialog'), `${message.from}: ${message.text}`);
             }
-
-
         });
         return client.getConversation('<%= convId %>');
     }).then(function (conversation) {
         return conversation.join();
     }).then(function (conversation) {
-        console.log(`conv build ok...`);
+        console.log(`conv joined ok...`);
         conv = conversation;
     }).catch(console.error.bind(console));
 

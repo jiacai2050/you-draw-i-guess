@@ -7,10 +7,6 @@ router.get('/:roomId', async (ctx) => {
     try {
         let query = new lc.Query('Room');
         let room = await query.get(ctx.params.roomId);
-        let IMClient = await lc.realtime.createIMClient(ctx.session.userName);
-        let conv = await IMClient.getConversation(room.get('convId'));
-        await conv.join();
-        
         await ctx.render('paint', {
             'createBy': room.get('createBy'),
             'name': room.get('name'),
@@ -32,7 +28,7 @@ router.post('/', koaBody, async (ctx) => {
         let IMClient = await lc.realtime.createIMClient(ctx.session.userName);
         let conv = await IMClient.createConversation({
             'name': roomName,
-            'transient': true,
+            // 'transient': true,
         });
 
         let Room = lc.Object.extend('Room');

@@ -34,8 +34,18 @@ api.get('/', async (ctx) => {
   }
 });
 api.get('/logout', async (ctx) => {
-  ctx.session = null;
-  ctx.body = { 'code': 0 };
+  try {
+    let success = await lc.Object.createWithoutData('SimpleUser', ctx.session.userId).destroy();
+    if (success) {
+      ctx.session = null;
+      ctx.body = { 'code': 0 };
+    } else {
+      ctx.body = { 'code': 20000, 'errMsg': '退出失败' };
+    }
+  } catch (e) {
+    console.error(e);
+    ctx.body = { 'code': 20000, 'errMsg': `退出失败:${e.message}` };
+  }
 });
 
 module.exports = api;
