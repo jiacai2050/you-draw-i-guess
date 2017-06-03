@@ -1,0 +1,9 @@
+{
+    "log": {
+        "dir": "/tmp"
+    },
+    "leancloud": {
+        "appId": "<your appId in LeanCloud>",
+        "appKey": "<your appKey in LeanCloud>"
+    }
+}
