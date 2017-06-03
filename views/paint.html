@@ -4,38 +4,76 @@
 <script type="text/javascript" src="/js/util.js"></script>
 
 <script type="text/javascript">
-    window.document.body.onload = () => {
-        document.title = '<%= name %> by <%= createBy %>';
-        draw();
-        var Realtime = AV.Realtime;
-        var TextMessage = AV.TextMessage;
-        const realtime = new Realtime({
-            appId: '<%=lcAppId%>',
-            region: 'cn', // 美国节点为 "us"
-            noBinary: true,
-        });
-        let msgInput = document.getElementById('message');
-        let dialogDiv = document.getElementById('dialog');
+    var Realtime = AV.Realtime;
+    var TextMessage = AV.TextMessage;
+    const realtime = new Realtime({
+        appId: '<%=lcAppId%>',
+        region: 'cn', // 美国节点为 "us"
+        noBinary: true,
+    });
+    let imClient = null;
+    let conv = null;
+    realtime.createIMClient('<%= currentUserName %>').then(function (client) {
+        console.log(`client build ok...`);
+        imClient = client;
+        imClient.on('message', function (message, conversation) {
+            let points = JSON.parse(message.text);
+            if (Array.isArray(points)) {
+                let startPoint = points.shift();
+                status = startPoint.status;
+                ctx.strokeStyle = startPoint.color;
+                touchStartHandler({
+                    clientX: startPoint.x * canvas.width,
+                    clientY: startPoint.y * canvas.height,
+                    remote: true
+                })
 
-        realtime.createIMClient('<%= currentUserName %>').then(function (client) {
-            client.on('message', function (message, conversation) {
+                for (let p of points) {
+                    touchMoveHandler({
+                        clientX: p.x * canvas.width,
+                        clientY: p.y * canvas.height,
+                        remote: true
+                    })
+                }
+                touchEndHandler({ remote: true });
+            } else {
                 let marquee = document.createElement("marquee");
                 marquee.setAttribute('loop', 1);
                 marquee.setAttribute('onfinish', 'removeMe(this);');
                 marquee.appendChild(document.createTextNode(`${message.from}: ${message.text}`));
-                dialogDiv.appendChild(marquee);
-            });
-        }).catch(console.error);
-        document.getElementById('send').onclick = function (e) {
-            if (msgInput.value.trim() !== '') {
-                realtime.createIMClient('<%= currentUserName %>').then(function (client) {
-                    return client.getConversation('<%= convId %>');
-                }).then(function (conversation) {
-                    return conversation.join();
-                }).then(function (conversation) {
-                    conversation.send(new AV.TextMessage(msgInput.value));
-                }).then(function (message) {
-                }).catch(console.error.bind(console));
+                document.getElementById('dialog').appendChild(marquee);
+            }
+
+
+        });
+        return client.getConversation('<%= convId %>');
+    }).then(function (conversation) {
+        return conversation.join();
+    }).then(function (conversation) {
+        console.log(`conv build ok...`);
+        conv = conversation;
+    }).catch(console.error.bind(console));
+
+    function sendMsg(msg) {
+        if (msg.trim() !== '') {
+            conv.send(new AV.TextMessage(JSON.stringify(msg))).then(function (message) {
+                console.log(message.text + " send!");
+            }).catch(console.error.bind(console));
+        }
+    }
+    window.document.body.onload = () => {
+        document.title = '<%= name %> by <%= createBy %>';
+        draw();
+
+        let msgInput = document.getElementById('message');
+        let sendBtn = document.getElementById('send');
+        sendBtn.onclick = function (e) {
+            sendMsg(msgInput.value);
+        };
+        msgInput.onkeypress = function (e) {
+            var key = e.which || e.keyCode;
+            if (key === 13) { // 13 is enter
+                sendMsg(msgInput.value);
             }
         };
     }
@@ -46,7 +84,7 @@
     <hr/>
 </div>
 <div class="form">
-    <input type="input" id="message" placeholder="you guess it..."></input>
+    <input type="input" id="message" placeholder="make a guess..."></input>
     <input type="button" id="send" value="发送"></input>
 </div>
 <hr/>

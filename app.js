@@ -34,7 +34,6 @@ app.use(async (ctx, next) => {
   console.log(`${start}<||>${ctx.headers['x-real-ip']}<||>${ctx.method}<||>${ctx.url}<||>${ms}ms<||>${ctx.headers['user-agent']}`);
 }).use(serve(path.join(__dirname, 'assets')))
   .use(async (ctx, next) => {
-    console.log(ctx.session);
     if (ctx.path === '/login' || ctx.headers['host'].startsWith('docker')) {
       await next();
     } else if (!ctx.session.userName) {
