@@ -4,62 +4,58 @@
 <script type="text/javascript">
     window.onload = () => {
         let createRoomBtn = document.getElementById("create");
-        let roomNameInput = document.getElementById("roomName");
-        createRoomBtn.onclick = (e) => {
-            if (roomNameInput.value.trim() === '') {
-                alert(`房间名不能为空！！`);
-                return false;
-            }
-            postAjax('/rooms', {
-                "roomName": roomNameInput.value
-            }, (resp) => {
-                window.location = `/rooms/${resp.roomId}`; 
-            })
-        }
-        roomNameInput.onkeypress = function (e) {
-            var key = e.which || e.keyCode;
-            if (key === 13) { // 13 is enter
-                createRoomBtn.click(e);
+        createRoomBtn.onclick = () => {
+            let roomName = prompt('房间名');
+            if (roomName) {
+                if (roomName.trim() === '') {
+                    alert(`房间名不能为空！！`);
+                    return false;
+                }
+                postAjax('/rooms', {
+                    "roomName": roomName
+                }, (resp) => {
+                    window.location = `/rooms/${resp.roomId}`;
+                })
             }
         };
         document.getElementById("logout").onclick = () => {
-            if(confirm('确认退出嘛 ？'))
-            getAjax('/logout', (resp) => {
-                window.location = '/login';
-            });
+            if (confirm('确认退出嘛 ？'))
+                getAjax('/logout', (resp) => {
+                    window.location = '/login';
+                });
         }
     }
 
 </script>
 
 <input id="logout" type="button" value="<%= currentUserName%>, Logout">
+
 <div class="container">
-    <div class="form">
-        <p><input id="roomName" type="text" placeholder="请输入房间名..."></input>
-        </p>
-        <div class="btn-tools">
-            <input id="create" type="button" value="创建新房间">
-        </div>
-    </div>
-
-
     <%
         if(rooms.length > 0) {
     %>
-    <hr>
         <ul id="createdRooms" aria-label="已有房间">
-        <%            
+            <%            
             for(let room of rooms) { 
         %>
-            <li>
-                <a href="/rooms/<%= room.id %>">
-                    <%= room.name%> 
-                </a>created by <%= room.createBy %>
-            </li>
-        <%
+                <li>
+                    <%= room.createBy %> 的
+                        <a href="/rooms/<%= room.id %>">
+                            <%= room.name%>
+                        </a>,
+                        <%= room.numMembers %> 人在线
+                </li>
+                <%
             }
+        %>
+        </ul>
+        <hr>
+        <%
         }
         %>
-
-        </ul>
+            <div class="form">
+                <div class="btn-tools">
+                    <input id="create" type="button" value="创建新房间">
+                </div>
+            </div>
 </div>

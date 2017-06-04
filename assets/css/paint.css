@@ -27,10 +27,3 @@ text-align: center;
 .form > input {
     height: 30px;
 }
-/*#dialog {
-    z-index: 1;
-    position: absolute;
-    margin: auto;
-    top: 150px; left: 0; right: 0; bottom: 0;
-    overflow: auto;
-}*/

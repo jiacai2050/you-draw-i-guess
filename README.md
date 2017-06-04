@@ -15,7 +15,7 @@
 
 ## 本地开发
 
-1. 编辑配置文件。`conf` 文件夹内有个 example，去掉后缀名，并填入 LeanCloud APP 相关信息。
+1. 参照 [config.js](config.js) 设置相关环境变量
 2. `npm install`
 3. `npm start`
 

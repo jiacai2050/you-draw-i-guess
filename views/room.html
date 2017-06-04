@@ -1,7 +1,5 @@
-<link rel="stylesheet" href="/css/paint.css" />
 <link rel="stylesheet" href="/css/barrager.css" />
 <script type="text/javascript" src="/js/realtime.browser.min.js"></script>
-<script type="text/javascript" src="/js/paint.js"></script>
 <script type="text/javascript" src="/js/jquery-3.2.1.min.js"></script>
 <script type="text/javascript" src="/js/jquery.barrager.js"></script>
 <script type="text/javascript" src="/js/util.js"></script>
@@ -17,16 +15,6 @@
     let imClient = null;
     let conv = null;
     let addBulletScreens = (target, bullet) => {
-        // let marquee = document.createElement("marquee");
-        // // marquee.setAttribute('loop', 1);
-        // // marquee.setAttribute('onfinish', 'removeMe(this);');
-        // marquee.loop = 1;
-        // marquee.addEventListener('finish', function(e) {
-        //     alert(123);
-        //     // console.log(e.target);
-        // }, true);
-        // marquee.appendChild(document.createTextNode(bullet));
-        // target.appendChild(marquee);
         $('body').barrager({
             'info': bullet,
             'close': true
@@ -39,48 +27,19 @@
         imClient.on('membersjoined', (payload, conversation) => {
             if (conversation.id === '<%= convId %>') {
                 addBulletScreens(document.getElementById('dialog'), `${payload.members} 加入`);
+                for (let m of payload.members) {
+                    let p = document.createElement('p');
+                    p.setAttribute('id', m);
+                    p.appendChild(document.createTextNode(m));
+                    document.getElementById('members').appendChild(p);
+                }
             }
             console.log(payload.members, payload.invitedBy, 'joined');
         });
         imClient.on('message', function (message, conversation) {
-            let points = JSON.parse(message.text);
-            if (Array.isArray(points)) {
-                let startPoint = points.shift();
-
-                touchStartHandler({
-                    clientX: startPoint.x * canvas.width,
-                    clientY: startPoint.y * canvas.height,
-                    remote: true
-                })
-
-                for (let p of points) {
-                    touchMoveHandler({
-                        clientX: p.x * canvas.width,
-                        clientY: p.y * canvas.height,
-                        remote: true
-                    })
-                }
-                touchEndHandler({ remote: true });
-            } else {
-                let e = points;
-                if (e.type === 'msg') {
-                    addBulletScreens(document.getElementById('dialog'), `${message.from}: ${e.value}`);
-                } else if (e.type === 'event') {
-                    let ehs = {
-                        'pencil': usePencil,
-                        'eraser': useEraser,
-                        'rollback': useRollback,
-                        'color': useColor
-                    };
-                    if (e.src === 'color') {
-                        ehs[e.src]({
-                            'remote': true,
-                            'color': e.value
-                        });
-                    } else {
-                        ehs[e.src]({ 'remote': true });
-                    }
-                }
+            let msg = JSON.parse(message.text);
+            if (msg.type === 'msg') {
+                addBulletScreens(document.getElementById('dialog'), `${message.from}: ${msg.value}`);
             }
         });
         return client.getConversation('<%= convId %>');
@@ -89,6 +48,19 @@
     }).then(function (conversation) {
         console.log(`conv joined ok...`);
         conv = conversation;
+        conversation.on('membersleft', function membersleftEventHandler(payload) {
+            for (let m of payload.members) {
+                if (m === '<%= createBy %>') {
+                    alert('<%= createBy %>房主已经离开房间，请重新开房间再开始游戏。')
+                    window.location = '/';
+                } else {
+                    addBulletScreens(document.getElementById('dialog'), `${m} 已离开...`);
+                    let self = document.getElementById(m);
+                    self.parentElement.removeChild(self);
+                }
+            }
+            console.log(payload.members, payload.kickedBy);
+        });
     }).catch(console.error.bind(console));
 
     function sendMsg(msg) {
@@ -103,7 +75,6 @@
     }
     window.document.body.onload = () => {
         document.title = '<%= name %> by <%= createBy %>';
-        draw();
 
         let msgInput = document.getElementById('message');
         let sendBtn = document.getElementById('send');
@@ -116,21 +87,40 @@
                 sendMsg(msgInput.value);
             }
         };
+        document.getElementById('startDraw').onclick = (e) => {
+            window.location = `${window.location}/drawing`;
+        }
+        document.getElementById('gohome').onclick = function (e) {
+            if ('<%= currentUserName%>' === '<%= createBy %>') {
+                if (confirm("你是该房间的创建者，离开将导致本房间被删除，确定嘛？")) {
+                    deleteAjax('/rooms/<%= id%>', (resp) => {
+                        console.log('delete ok');
+                        // window.location = `/`;
+                    })
+                }
+            } else {
+                if (confirm("确定返回首页吗？")) {
+                    conv.quit().then((conv) => {
+                        console.log('退出成功', conv.members);
+                        // window.location = '/';
+                    }).catch((e) => {
+                        alert(`出错了！${e.message}`);
+                    });
+                }
+            }
+
+        };
     }
 
 </script>
-<div class="main">
-    <canvas id="tutorial"></canvas>
-    <hr/>
+在线人员：
+<div class="members" id="members">
 </div>
+<hr/>
 <div class="form">
     <input type="input" id="message" placeholder="make a guess..."></input>
     <input type="button" id="send" value="发送"></input>
-</div>
-<hr/>
-<div class="color-tools" id="choose-color"></div>
-<div class="btn-tools">
-    <input type="button" id="pencil" value="画笔"></input>
-    <input type="button" id="eraser" value="橡皮"></input>
-    <input type="button" id="rollback" value="清空"></input>
+    <input type="button" id="startDraw" value="开始画画"></input>
+    <input type="button" id="gohome" value="首页"></input>
+
 </div>

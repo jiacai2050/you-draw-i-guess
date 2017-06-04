@@ -1,18 +1,17 @@
 const router = require('koa-router')();
 const koaBody = require('koa-body')();
-const config = require('config');
+const config = require('../config');
 const lc = require('../lib/leancloud');
 
 router.get('/:roomId', async (ctx) => {
     try {
-        let query = new lc.Query('Room');
-        let room = await query.get(ctx.params.roomId);
-        await ctx.render('paint', {
+        let room = await new lc.Query('Room').get(ctx.params.roomId);
+        await ctx.render('room', {
             'createBy': room.get('createBy'),
             'name': room.get('name'),
             'id': room.get('objectId'),
             'convId': room.get('convId'),
-            'lcAppId': config.get('leancloud.appId'),
+            'lcAppId': config.leancloud.appId,
             'currentUserName': ctx.session.userName
         });
     } catch (err) {
@@ -20,7 +19,36 @@ router.get('/:roomId', async (ctx) => {
         ctx.response.body = `roomId = ${ctx.params.roomId} not found!`;
     };
 });
-
+router.delete('/:roomId', async(ctx) => {
+    let room = lc.Object.createWithoutData('Room', ctx.params.roomId);
+    try {
+        let success = await room.destroy();
+        if(success) {
+            ctx.body = {'code': 0}
+        } else {
+         ctx.body = { 'errMsg': `Ooops! 服务内部故障，请稍后重试！`, 'code': 20000 };   
+        }
+    } catch (err) {
+         ctx.body = { 'errMsg': `Ooops! ${err.message}`, 'code': 10000 };
+    }
+    
+});
+router.get('/:roomId/drawing', async (ctx) => {
+    try {
+        let room = await new lc.Query('Room').get(ctx.params.roomId);
+        await ctx.render('paint', {
+            'createBy': room.get('createBy'),
+            'name': room.get('name'),
+            'id': room.get('objectId'),
+            'convId': room.get('convId'),
+            'lcAppId': config.leancloud.appId,
+            'currentUserName': ctx.session.userName
+        });
+    } catch (err) {
+        console.error(err);
+        ctx.response.body = `roomId = ${ctx.params.roomId} not found!`;
+    };
+});
 router.post('/', koaBody, async (ctx) => {
     let roomName = ctx.request.body['roomName'];
 
@@ -29,7 +57,12 @@ router.post('/', koaBody, async (ctx) => {
         let conv = await IMClient.createConversation({
             'members': [],
             'name': roomName,
-            // 'transient': true,
+        });
+        conv.on('membersleft', function (payload) {
+            console.log(payload.members, payload.kickedBy);
+        });
+        conv.on('message', function (message) {
+            console.log(`get message ${message.text}`)
         });
 
         let Room = lc.Object.extend('Room');
@@ -37,8 +70,6 @@ router.post('/', koaBody, async (ctx) => {
         room.set('name', roomName);
         room.set('createBy', ctx.session.userName);
         room.set('convId', conv.id);
-        // Error: Converting circular structure to JSON
-        // room.relation('conv').add(conv);
         room = await room.save();
 
         ctx.body = { 'roomId': room.id, 'code': 0 };

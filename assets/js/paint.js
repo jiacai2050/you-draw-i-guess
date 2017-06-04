@@ -166,10 +166,4 @@ function draw() {
     document.getElementById('pencil').onclick = usePencil;
     document.getElementById('eraser').onclick = useEraser;
     document.getElementById('rollback').onclick = useRollback;
-
-    document.getElementById('gohome').onclick = function (e) {
-        if (confirm("确定返回首页吗？")) {
-            window.location = '/';
-        }
-    };
 }

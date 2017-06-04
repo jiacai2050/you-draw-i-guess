@@ -1,4 +1,4 @@
 .leancloud/
 node_modules/
 debug.js
-config/default.json
+env.sh

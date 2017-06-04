@@ -1,6 +1,6 @@
 function postAjax(uri, data, success, fail) {
-    success = success || function(resp) { console.log(resp) };
-    
+    success = success || function (resp) { console.log(resp) };
+
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = () => {
         if (xmlhttp.readyState == XMLHttpRequest.DONE) {
@@ -21,28 +21,28 @@ function postAjax(uri, data, success, fail) {
     xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xmlhttp.send(JSON.stringify(data));
 }
-function getAjax(uri, success, fail) {
-    success = success || function(resp) { console.log(resp) };
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange = () => {
-        if (xmlhttp.readyState == XMLHttpRequest.DONE) {
-            if (xmlhttp.status < 300) {
-                let resp = JSON.parse(xmlhttp.responseText);
-                if (resp.code == 0) {
-                    success(resp);
+function requestWithoutData(method) {
+    return (uri, success, fail) => {
+        success = success || function (resp) { console.log(resp) };
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = () => {
+            if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+                if (xmlhttp.status < 300) {
+                    let resp = JSON.parse(xmlhttp.responseText);
+                    if (resp.code == 0) {
+                        success(resp);
+                    } else {
+                        alert(resp.errMsg);
+                    }
                 } else {
-                    alert(resp.errMsg);
+                    alert('something else other than 200 was returned');
                 }
-            } else {
-                alert('something else other than 200 was returned');
             }
         }
-    };
 
-    xmlhttp.open("GET", uri, true);
-    xmlhttp.send();
+        xmlhttp.open(method, uri, true);
+        xmlhttp.send();
+    }
 }
-
-function removeMe(self) {
-    self.parentNode.removeChild(self);
-}
+let deleteAjax = requestWithoutData('DELETE');
+let getAjax = requestWithoutData('GET');
