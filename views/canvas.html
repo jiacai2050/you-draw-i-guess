@@ -17,31 +17,14 @@
     let imClient = null;
     let conv = null;
     let addBulletScreens = (target, bullet) => {
-        // let marquee = document.createElement("marquee");
-        // // marquee.setAttribute('loop', 1);
-        // // marquee.setAttribute('onfinish', 'removeMe(this);');
-        // marquee.loop = 1;
-        // marquee.addEventListener('finish', function(e) {
-        //     alert(123);
-        //     // console.log(e.target);
-        // }, true);
-        // marquee.appendChild(document.createTextNode(bullet));
-        // target.appendChild(marquee);
         $('body').barrager({
             'info': bullet,
             'close': true
         });
-
     }
     realtime.createIMClient('<%= currentUserName %>').then(function (client) {
         console.log(`client build ok...`);
         imClient = client;
-        imClient.on('membersjoined', (payload, conversation) => {
-            if (conversation.id === '<%= convId %>') {
-                addBulletScreens(document.getElementById('dialog'), `${payload.members} 加入`);
-            }
-            console.log(payload.members, payload.invitedBy, 'joined');
-        });
         imClient.on('message', function (message, conversation) {
             let points = JSON.parse(message.text);
             if (Array.isArray(points)) {
@@ -85,9 +68,7 @@
         });
         return client.getConversation('<%= convId %>');
     }).then(function (conversation) {
-        return conversation.join();
-    }).then(function (conversation) {
-        console.log(`conv joined ok...`);
+        console.log(`conv init ok...`);
         conv = conversation;
     }).catch(console.error.bind(console));
 

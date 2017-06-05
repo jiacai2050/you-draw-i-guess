@@ -22,7 +22,7 @@
 
     }
     realtime.createIMClient('<%= currentUserName %>').then(function (client) {
-        console.log(`client build ok...`);
+        console.log(`client init ok...`);
         imClient = client;
         imClient.on('membersjoined', (payload, conversation) => {
             if (conversation.id === '<%= convId %>') {
@@ -40,6 +40,10 @@
             let msg = JSON.parse(message.text);
             if (msg.type === 'msg') {
                 addBulletScreens(document.getElementById('dialog'), `${message.from}: ${msg.value}`);
+            } else if (msg.type === 'cmd') {
+                if(msg.op === 'startDraw') {
+                    window.location = `${window.location}/drawing`;
+                }
             }
         });
         return client.getConversation('<%= convId %>');
@@ -88,21 +92,29 @@
             }
         };
         document.getElementById('startDraw').onclick = (e) => {
-            window.location = `${window.location}/drawing`;
+            conv.send(new AV.TextMessage(JSON.stringify({
+                'type': 'cmd',
+                'op': 'startDraw'
+            }))).then(function (message) {
+                console.log(message.text + " send!");
+                window.location = `${window.location}/drawing`;
+            }).catch((e) => {
+                alert(e.message);
+            });
+            
         }
         document.getElementById('gohome').onclick = function (e) {
             if ('<%= currentUserName%>' === '<%= createBy %>') {
                 if (confirm("你是该房间的创建者，离开将导致本房间被删除，确定嘛？")) {
                     deleteAjax('/rooms/<%= id%>', (resp) => {
-                        console.log('delete ok');
-                        // window.location = `/`;
+                        window.location = `/`;
                     })
                 }
             } else {
                 if (confirm("确定返回首页吗？")) {
                     conv.quit().then((conv) => {
-                        console.log('退出成功', conv.members);
-                        // window.location = '/';
+                        // console.log('退出成功', conv.members);
+                        window.location = '/';
                     }).catch((e) => {
                         alert(`出错了！${e.message}`);
                     });
@@ -120,7 +132,6 @@
 <div class="form">
     <input type="input" id="message" placeholder="make a guess..."></input>
     <input type="button" id="send" value="发送"></input>
-    <input type="button" id="startDraw" value="开始画画"></input>
     <input type="button" id="gohome" value="首页"></input>
-
+    <input type="button" id="startDraw" value="开始画画"></input>
 </div>

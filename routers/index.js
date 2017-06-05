@@ -15,9 +15,8 @@ for (let rf of routerFiles) {
 api.get('/', async (ctx) => {
     let rooms = [];
     try {
-        let qryResult = await lc.Query.doCloudQuery('select * from Room limit 15 order by updatedAt desc');
+        let qryResult = await lc.Query.doCloudQuery('select * from Room where status>0 limit 15 order by updatedAt desc');
         for (let room of qryResult.results) {
-            
             let conv = await new lc.Query('_Conversation').get(room.get('convId'));
             rooms.push({
                 'createBy': room.get('createBy'),
