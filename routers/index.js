@@ -7,8 +7,8 @@ let routerFiles = fs.readdirSync(__dirname);
 for (let rf of routerFiles) {
     if (!/index/.test(rf) && /.*js$/.test(rf)) {
         let prefix = rf.slice(0, -3);
-        api.use(`/${prefix}`, require(path.join(__dirname, rf)).routes());
         console.log(`add router [${prefix}] to hander [${rf}]`);
+        api.use(`/${prefix}`, require(path.join(__dirname, rf)).routes());
     }
 }
 
@@ -48,5 +48,4 @@ api.get('/logout', async (ctx) => {
         ctx.body = { 'code': 10000, 'errMsg': `退出失败:${e.message}` };
     }
 });
-
 module.exports = api;

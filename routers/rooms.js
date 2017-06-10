@@ -34,21 +34,30 @@ router.get('/:roomId', async (ctx) => {
     };
 });
 
-router.get('/:roomId/drawing', async (ctx) => {
+router.post('/start_game', koaBody, async (ctx) => {
+    console.log(ctx.request.body);
+    let m = ctx.request.body['members'];
+    let roomId = ctx.request.body['roomId'];
     try {
-        let room = await new lc.Query('Room').get(ctx.params.roomId);
-        await ctx.render('canvas', {
-            'createBy': room.get('createBy'),
-            'name': room.get('name'),
-            'id': room.get('objectId'),
-            'convId': room.get('convId'),
-            'lcAppId': config.leancloud.appId,
-            'currentUserName': ctx.session.userName
-        });
+        let room = await new lc.Query('Room').get(roomId);
+        room.set('order', m);
+        room = await room.save();
+        ctx.body = { 'code': code.RESP_CODE.OK };
     } catch (err) {
         console.error(err);
-        ctx.response.body = `roomId = ${ctx.params.roomId} not found!`;
+        ctx.body = { 'code': code.RESP_CODE.SERVICE_UNAVAILABLE, 'errMsg': err.message };
     };
+});
+router.get('/:roomId/drawing', async (ctx) => {
+    let room = await new lc.Query('Room').get(ctx.params.roomId);
+    await ctx.render('canvas', {
+        'createBy': room.get('createBy'),
+        'name': room.get('name'),
+        'id': room.get('objectId'),
+        'convId': room.get('convId'),
+        'lcAppId': config.leancloud.appId,
+        'currentUserName': ctx.session.userName
+    });
 });
 router.post('/', koaBody, async (ctx) => {
     let roomName = ctx.request.body['roomName'];
@@ -59,12 +68,12 @@ router.post('/', koaBody, async (ctx) => {
             'members': [],
             'name': roomName,
         });
-        conv.on('membersleft', function (payload) {
-            console.log(payload.members, payload.kickedBy);
-        });
-        conv.on('message', function (message) {
-            console.log(`get message ${message.text}`)
-        });
+        // conv.on('membersleft', function (payload) {
+        //     console.log(payload.members, payload.kickedBy);
+        // });
+        // conv.on('message', function (message) {
+        //     console.log(`get message ${message.text}`)
+        // });
 
         let Room = lc.Object.extend('Room');
         let room = new Room();

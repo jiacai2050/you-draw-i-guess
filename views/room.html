@@ -4,127 +4,22 @@
 <script type="text/javascript" src="/js/jquery.barrager.js"></script>
 <script type="text/javascript" src="/js/util.js"></script>
 
+
 <script type="text/javascript">
-    var Realtime = AV.Realtime;
-    var TextMessage = AV.TextMessage;
+    let Realtime = AV.Realtime;
+    let TextMessage = AV.TextMessage;
     const realtime = new Realtime({
         appId: '<%=lcAppId%>',
         region: 'cn', // 美国节点为 "us"
         noBinary: true,
     });
-    let imClient = null;
-    let conv = null;
-    let addBulletScreens = (target, bullet) => {
-        $('body').barrager({
-            'info': bullet,
-            'close': true
-        });
-
-    }
-    realtime.createIMClient('<%= currentUserName %>').then(function (client) {
-        console.log(`client init ok...`);
-        imClient = client;
-        imClient.on('membersjoined', (payload, conversation) => {
-            if (conversation.id === '<%= convId %>') {
-                addBulletScreens(document.getElementById('dialog'), `${payload.members} 加入`);
-                for (let m of payload.members) {
-                    let p = document.createElement('p');
-                    p.setAttribute('id', m);
-                    p.appendChild(document.createTextNode(m));
-                    document.getElementById('members').appendChild(p);
-                }
-            }
-            console.log(payload.members, payload.invitedBy, 'joined');
-        });
-        imClient.on('message', function (message, conversation) {
-            let msg = JSON.parse(message.text);
-            if (msg.type === 'msg') {
-                addBulletScreens(document.getElementById('dialog'), `${message.from}: ${msg.value}`);
-            } else if (msg.type === 'cmd') {
-                if(msg.op === 'startDraw') {
-                    window.location = `${window.location}/drawing`;
-                }
-            }
-        });
-        return client.getConversation('<%= convId %>');
-    }).then(function (conversation) {
-        return conversation.join();
-    }).then(function (conversation) {
-        console.log(`conv joined ok...`);
-        conv = conversation;
-        conversation.on('membersleft', function membersleftEventHandler(payload) {
-            for (let m of payload.members) {
-                if (m === '<%= createBy %>') {
-                    alert('<%= createBy %>房主已经离开房间，请重新开房间再开始游戏。')
-                    window.location = '/';
-                } else {
-                    addBulletScreens(document.getElementById('dialog'), `${m} 已离开...`);
-                    let self = document.getElementById(m);
-                    self.parentElement.removeChild(self);
-                }
-            }
-            console.log(payload.members, payload.kickedBy);
-        });
-    }).catch(console.error.bind(console));
-
-    function sendMsg(msg) {
-        if (msg.trim() !== '') {
-            conv.send(new AV.TextMessage(JSON.stringify({
-                'type': 'msg',
-                'value': msg
-            }))).then(function (message) {
-                console.log(message.text + " send!");
-            }).catch(console.error.bind(console));
-        }
-    }
-    window.document.body.onload = () => {
-        document.title = '<%= name %> by <%= createBy %>';
-
-        let msgInput = document.getElementById('message');
-        let sendBtn = document.getElementById('send');
-        sendBtn.onclick = function (e) {
-            sendMsg(msgInput.value);
-        };
-        msgInput.onkeypress = function (e) {
-            var key = e.which || e.keyCode;
-            if (key === 13) { // 13 is enter
-                sendMsg(msgInput.value);
-            }
-        };
-        document.getElementById('startDraw').onclick = (e) => {
-            conv.send(new AV.TextMessage(JSON.stringify({
-                'type': 'cmd',
-                'op': 'startDraw'
-            }))).then(function (message) {
-                console.log(message.text + " send!");
-                window.location = `${window.location}/drawing`;
-            }).catch((e) => {
-                alert(e.message);
-            });
-            
-        }
-        document.getElementById('gohome').onclick = function (e) {
-            if ('<%= currentUserName%>' === '<%= createBy %>') {
-                if (confirm("你是该房间的创建者，离开将导致本房间被删除，确定嘛？")) {
-                    deleteAjax('/rooms/<%= id%>', (resp) => {
-                        window.location = `/`;
-                    })
-                }
-            } else {
-                if (confirm("确定返回首页吗？")) {
-                    conv.quit().then((conv) => {
-                        // console.log('退出成功', conv.members);
-                        window.location = '/';
-                    }).catch((e) => {
-                        alert(`出错了！${e.message}`);
-                    });
-                }
-            }
-
-        };
-    }
-
+    let currentUserName = '<%= currentUserName %>';
+    let convId = '<%= convId %>';
+    let createBy = '<%= createBy %>';
+    let roomName = '<%= name %>';
+    let roomId = '<%= id %>';
 </script>
+<script type="text/javascript" src="/js/room.js"></script>
 在线人员：
 <div class="members" id="members">
 </div>

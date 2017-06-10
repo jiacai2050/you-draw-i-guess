@@ -46,3 +46,18 @@ function requestWithoutData(method) {
 }
 let deleteAjax = requestWithoutData('DELETE');
 let getAjax = requestWithoutData('GET');
+
+function health_monitor(roomId) {
+    const socket = new WebSocket(`ws://${window.location.host}/ws/health_monitor?roomId=${roomId}`);
+
+    socket.addEventListener('open', function (event) {
+        socket.send('Hello Server!');
+        // setInterval(() => {
+        //     socket.close();
+        // }, 5000);
+    });
+    socket.addEventListener('message', function (event) {
+        console.log('Message from server', event.data, typeof (event.data));
+    });
+    return socket;
+}

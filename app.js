@@ -9,8 +9,8 @@ const config = require('./config');
 const AV = require('leancloud-storage');
 const session = require('koa-session');
 
-
-const app = new Koa();
+let app = new Koa()
+let sock = websockify(app);
 
 app.keys = ['leancloud'];
 app.proxy = true;
@@ -22,6 +22,8 @@ render(app, {
     cache: false,
     debug: true
 });
+let ws = require('./ws')
+app.ws.use(ws.routes()).use(ws.allowedMethods());
 app.use(async (ctx, next) => {
     const start = new Date();
     await next();
@@ -44,10 +46,7 @@ app.use(async (ctx, next) => {
             await next();
         }
     })
-    .use(session({
-        'key': 'koa:s'
-    }, app))
+    .use(session({ 'key': 'koa:s' }, app))
     .use(routers.routes())
     .use(routers.allowedMethods())
-
     .listen(parseInt(process.env.LEANCLOUD_APP_PORT || process.env.PORT || 3000));
