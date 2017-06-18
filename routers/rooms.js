@@ -2,6 +2,7 @@ const router = require('koa-router')();
 const koaBody = require('koa-body')();
 const config = require('../config');
 const lc = require('../lib/leancloud');
+const roomLib = require('../lib/room');
 const code = require('../lib/code');
 
 router.get('/:roomId', async (ctx) => {
@@ -11,7 +12,8 @@ router.get('/:roomId', async (ctx) => {
         let members = conv.get('m');
         let status = room.get('status');
         if (status === code.ROOM_STATUS.UNUSED) {
-            if (members.length > 8) {
+            // __admin__ should not be checked in.
+            if (members.length - 1 > 8) {
                 ctx.body = '该房间人员已满，请返回重新选择！';
             } else {
                 await ctx.render('room', {
@@ -35,12 +37,12 @@ router.get('/:roomId', async (ctx) => {
 });
 
 router.post('/start_game', koaBody, async (ctx) => {
-    console.log(ctx.request.body);
     let m = ctx.request.body['members'];
     let roomId = ctx.request.body['roomId'];
     try {
         let room = await new lc.Query('Room').get(roomId);
         room.set('order', m);
+        room.set('status', code.ROOM_STATUS.PLAYING);
         room = await room.save();
         ctx.body = { 'code': code.RESP_CODE.OK };
     } catch (err) {
@@ -50,6 +52,7 @@ router.post('/start_game', koaBody, async (ctx) => {
 });
 router.get('/:roomId/drawing', async (ctx) => {
     let room = await new lc.Query('Room').get(ctx.params.roomId);
+
     await ctx.render('canvas', {
         'createBy': room.get('createBy'),
         'name': room.get('name'),
@@ -61,19 +64,13 @@ router.get('/:roomId/drawing', async (ctx) => {
 });
 router.post('/', koaBody, async (ctx) => {
     let roomName = ctx.request.body['roomName'];
-
+    let adminName = roomLib.getRoomAdminName(roomName);
     try {
-        let IMClient = await lc.realtime.createIMClient(ctx.session.userName);
+        let IMClient = await lc.realtime.createIMClient(adminName);
         let conv = await IMClient.createConversation({
-            'members': [],
+            'members': [adminName],
             'name': roomName,
         });
-        // conv.on('membersleft', function (payload) {
-        //     console.log(payload.members, payload.kickedBy);
-        // });
-        // conv.on('message', function (message) {
-        //     console.log(`get message ${message.text}`)
-        // });
 
         let Room = lc.Object.extend('Room');
         let room = new Room();
@@ -82,7 +79,7 @@ router.post('/', koaBody, async (ctx) => {
         room.set('convId', conv.id);
         room.set('status', code.ROOM_STATUS.UNUSED);
         room = await room.save();
-
+        roomLib.addRoomListener(conv, room.id);
         ctx.body = { 'roomId': room.id, 'code': code.RESP_CODE.OK };
     }
     catch (err) {

@@ -1,14 +1,14 @@
 {
   "name": "you-draw-i-guess",
   "version": "1.0.0",
-  "description": "Alpha trial of game you draw I guess",
+  "description": "Simple try of game You-Draw-I-Guess based on LeanCloud RTM",
   "scripts": {
     "start": "node app.js"
   },
   "engines": {
     "node": "7.10.0"
   },
-  "author": "Jiacai Liu <jiacai2050@gmailcom> (http://liujiacai.net)",
+  "author": "Jiacai Liu <jiacai2050@gmail.com> (http://liujiacai.net)",
   "license": "Apache License",
   "dependencies": {
     "bluebird": "^3.5.0",
@@ -19,8 +19,8 @@
     "koa-session": "^5.1.0",
     "koa-static": "^3.0.0",
     "koa-websocket": "^4.0.0",
-    "leancloud-realtime": "^3.4.1",
-    "leancloud-storage": "^2.4.0",
+    "leancloud-realtime": "^3.5.0",
+    "leancloud-storage": "^3.0.0",
     "redis": "^2.7.1"
   }
 }

@@ -1,10 +1,10 @@
-; (function () {
+; (function ($) {
 
     let imClient = null;
     let conv = null;
     let membersDiv = null;
     let socket = null;
-    let membersToShow = [];
+    let membersToShow = new Set();
     function addBulletScreens(bullet, opts) {
         opts = opts || {};
         opts = Object.assign({
@@ -18,10 +18,14 @@
         p.setAttribute('id', m);
         p.appendChild(document.createTextNode(m));
         membersDiv.appendChild(p);
+
+        membersToShow.add(m);
     }
     function removeMember(m) {
         let self = document.getElementById(m);
         self.parentElement.removeChild(self);
+
+        membersToShow.delete(m);
     }
 
     realtime.createIMClient(currentUserName).then(function (client) {
@@ -31,7 +35,7 @@
             if (conversation.id === convId) {
                 addBulletScreens(`${payload.members} 加入`);
                 for (let m of payload.members) {
-                    if (membersToShow.indexOf(m) === -1) {
+                    if (!membersToShow.has(m)) {
                         addMember(m);
                     }
 
@@ -54,8 +58,11 @@
     }).then(function (conversation) {
         // 列举已有成员
         for (let m of conversation.members) {
-            membersToShow.push(m);
-            addMember(m);
+            if (m.indexOf('__admin__') !== 0) {
+                membersToShow.add(m);
+                addMember(m);
+            }
+
         }
         return conversation.join();
     }).then(function (conversation) {
@@ -107,12 +114,16 @@
                 'type': 'cmd',
                 'op': 'startDraw'
             }))).then(function (message) {
+                let orderDraw = [];
+                for(let child of membersDiv.children) {
+                    orderDraw.push(child.id);
+                }
                 postAjax('/rooms/start_game', {
                     'roomId': roomId,
-                    'members': membersToShow
+                    'members': orderDraw
                 }, (resp) => {
                     socket.close();
-                    // window.location = `/rooms/${roomId}/drawing`;
+                    window.location = `/rooms/${roomId}/drawing`;
                 });
             }).catch((e) => {
                 alert(e.message);
@@ -140,4 +151,4 @@
         };
     }
 
-})()
+})(jQuery);

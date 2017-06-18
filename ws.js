@@ -1,13 +1,14 @@
 const ws = require('koa-router')();
 const code = require('./lib/code');
 const lc = require('./lib/leancloud');
-let userSocket = {};
+
 ws.get('/ping', async (ctx) => {
     ctx.websocket.on('message', (message) => {
         console.log(message);
         ctx.websocket.send(message);
     });
 });
+
 ws.get('/ws/health_monitor', async (ctx) => {
     let roomId = ctx.query.roomId;
     let room = await new lc.Query('Room').get(roomId);

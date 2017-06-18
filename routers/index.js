@@ -22,7 +22,7 @@ api.get('/', async (ctx) => {
                 'createBy': room.get('createBy'),
                 'name': room.get('name'),
                 'id': room.get('objectId'),
-                'numMembers': conv.get('m').length
+                'numMembers': conv.get('m').length - 1 // remove __admin__
             });
         }
     } catch (error) {

@@ -38,7 +38,8 @@ app.use(async (ctx, next) => {
     }
 }).use(serve(path.join(__dirname, 'assets')))
     .use(async (ctx, next) => {
-        if (ctx.path === '/login' || ctx.headers['host'].startsWith('docker')) {
+        let whitePaths = ['/debug', '/login'];
+        if (whitePaths.indexOf(ctx.path) > -1 || ctx.headers['host'].startsWith('docker')) {
             await next();
         } else if (!ctx.session.userName) {
             ctx.redirect(`/login?from=${ctx.path}`);
