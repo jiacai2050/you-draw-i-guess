@@ -2,37 +2,14 @@ const path = require('path');
 const fs = require('fs');
 const api = require('koa-router')();
 const lc = require('../lib/leancloud');
+const config = require('../config');
 
-let routerFiles = fs.readdirSync(__dirname);
-for (let rf of routerFiles) {
-    if (!/index/.test(rf) && /.*js$/.test(rf)) {
-        let prefix = rf.slice(0, -3);
-        console.log(`add router [${prefix}] to hander [${rf}]`);
-        api.use(`/${prefix}`, require(path.join(__dirname, rf)).routes());
-    }
-}
-
-api.get('/', async (ctx) => {
-    let rooms = [];
-    try {
-        let qryResult = await lc.Query.doCloudQuery('select * from Room where status>0 limit 15 order by updatedAt desc');
-        for (let room of qryResult.results) {
-            let conv = await new lc.Query('_Conversation').get(room.get('convId'));
-            rooms.push({
-                'createBy': room.get('createBy'),
-                'name': room.get('name'),
-                'id': room.get('objectId'),
-                'numMembers': conv.get('m').length - 1 // remove __admin__
-            });
-        }
-    } catch (error) {
-        console.error(error);
-    } finally {
-        await ctx.render('index', {
-            'rooms': rooms,
-            'currentUserName': ctx.session.userName
-        });
-    }
+api.get('/', async(ctx) => {
+    await ctx.render('canvas', {
+        'convId': config.leancloud.convId,
+        'lcAppId': config.leancloud.appId,
+        'currentUserName': ctx.session.userName
+    });
 });
 api.get('/logout', async (ctx) => {
     try {

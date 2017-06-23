@@ -1,13 +1,48 @@
-; (function ($) {
-    const FLAG_PENCEL = 1;
-    const FLAG_ERASER = 2;
+; (async function ($) {
+
     let canvas = null;
     let ctx = null;
+
+    const FLAG_PENCEL = 1;
+    const FLAG_ERASER = 2;
     //  1  pencil
     //  2  eraser
     let status = 0;
     let lastStatus = FLAG_PENCEL;
 
+    window.document.body.onload = () => {
+        initCanvas();
+
+        const msgInput = document.getElementById('message');
+        const sendBtn = document.getElementById('send');
+        sendBtn.onclick = function (e) {
+            addBulletScreens(`${currentUserName}: ${msgInput.value}`);
+            sendMessage({ 'type': 'msg', 'value': msgInput.value });
+        };
+        msgInput.onkeypress = function (e) {
+            var key = e.which || e.keyCode;
+            if (key === 13) { // 13 is enter
+                addBulletScreens(`${currentUserName}: ${msgInput.value}`);
+                sendMessage({ 'type': 'msg', 'value': msgInput.value });
+            }
+        };
+    }
+
+    const realtime = new Realtime({
+        appId: appId,
+        region: 'cn', // 美国节点为 "us"
+        noBinary: true,
+    });
+    const imClient = await realtime.createIMClient(currentUserName);
+    let conv = await imClient.getConversation(convId);
+    conv = await conv.join();
+    startGame();
+
+
+    async function sendMessage(msg) {
+        const sent = await conv.send(new AV.TextMessage(JSON.stringify(msg)));
+        console.log(`${sent.text} send!`);
+    }
     function touchStartHandler(e) {
         if (status === 0) {
             status = lastStatus;
@@ -56,9 +91,7 @@
             };
             points.push(p);
             if (points.length > 20) {
-                conv.send(new AV.TextMessage(JSON.stringify(points))).then(function (message) {
-                    console.log(message.text + " send!");
-                }).catch(console.error.bind(console));
+                sendMessage(points);
                 points = [];
             }
         }
@@ -68,9 +101,7 @@
         lastStatus = status;
         status = 0;
         if (points.length > 0 && !e.remote) {
-            conv.send(new AV.TextMessage(JSON.stringify(points))).then(function (message) {
-                console.log(message.text + " send!");
-            }).catch(console.error.bind(console));
+            sendMessage(points);
             points = [];
         }
     }
@@ -79,12 +110,10 @@
         lastStatus = FLAG_PENCEL;
         status = 0;
         if (!e.remote) {
-            conv.send(new AV.TextMessage(JSON.stringify({
+            sendMessage({
                 "type": 'event',
                 'src': 'pencil'
-            }))).then(function (message) {
-                console.log(message.text + " send!");
-            }).catch(console.error.bind(console));
+            });
         }
 
     };
@@ -93,12 +122,10 @@
         lastStatus = FLAG_ERASER;
         status = 0;
         if (!e.remote) {
-            conv.send(new AV.TextMessage(JSON.stringify({
+            sendMessage({
                 "type": 'event',
                 'src': 'eraser'
-            }))).then(function (message) {
-                console.log(message.text + " send!");
-            }).catch(console.error.bind(console));
+            });
         }
 
     };
@@ -106,12 +133,10 @@
         if (!e.remote) {
             if (confirm("确定吗？")) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                conv.send(new AV.TextMessage(JSON.stringify({
+                sendMessage({
                     "type": 'event',
                     'src': 'rollback'
-                }))).then(function (message) {
-                    console.log(message.text + " send!");
-                }).catch(console.error.bind(console));
+                });
             }
         } else {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -121,14 +146,11 @@
     function useColor(e) {
         if (!e.remote) {
             ctx.strokeStyle = e.target.style['background-color'];
-
-            conv.send(new AV.TextMessage(JSON.stringify({
+            sendMessage({
                 "type": 'event',
                 'src': 'color',
                 'value': e.target.style['background-color']
-            }))).then(function (message) {
-                console.log(message.text + " send!");
-            }).catch(console.error.bind(console));
+            });
         } else {
             ctx.strokeStyle = e.color;
         }
@@ -137,6 +159,14 @@
         status = 0;
 
     }
+
+    function addBulletScreens(bullet) {
+        $('body').barrager({
+            'info': bullet,
+            'close': true
+        });
+    }
+
     function initCanvas() {
         canvas = document.getElementById('ydig');
         canvas.width = window.innerWidth * 0.95;
@@ -151,10 +181,10 @@
         canvas.onmousemove = canvas.ontouchmove;
         canvas.onmouseup = canvas.ontouchend;
 
-        let chooseColor = document.getElementById("choose-color");
-        let predefinedColors = ["fuchsia", "darkorchid", "red", "green", "blue", "black", "teal", "orange"];
-        for (let c of predefinedColors) {
-            let div = document.createElement("div");
+        const chooseColor = document.getElementById("choose-color");
+        const predefinedColors = ["fuchsia", "darkorchid", "red", "green", "blue", "black", "teal", "orange"];
+        for (const c of predefinedColors) {
+            const div = document.createElement("div");
             div.style['background-color'] = c;
             chooseColor.appendChild(div);
         }
@@ -168,29 +198,12 @@
         document.getElementById('eraser').onclick = useEraser;
         document.getElementById('rollback').onclick = useRollback;
     }
-
-    const realtime = new Realtime({
-        appId: appId,
-        region: 'cn', // 美国节点为 "us"
-        noBinary: true,
-    });
-    let imClient = null;
-    let conv = null;
-
-    let addBulletScreens = (bullet) => {
-        $('body').barrager({
-            'info': bullet,
-            'close': true
-        });
-    }
-    realtime.createIMClient(currentUserName).then(function (client) {
-        console.log(`client build ok...`);
-        imClient = client;
+    function startGame() {
         imClient.on('message', function (message, conversation) {
-            let text = JSON.parse(message.text);
+            const text = JSON.parse(message.text);
             if (Array.isArray(text)) {
-                let points = text;
-                let startPoint = points.shift();
+                const points = text;
+                const startPoint = points.shift();
 
                 touchStartHandler({
                     clientX: startPoint.x * canvas.width,
@@ -198,7 +211,7 @@
                     remote: true
                 })
 
-                for (let p of points) {
+                for (const p of points) {
                     touchMoveHandler({
                         clientX: p.x * canvas.width,
                         clientY: p.y * canvas.height,
@@ -207,11 +220,11 @@
                 }
                 touchEndHandler({ remote: true });
             } else {
-                let e = text;
+                const e = text;
                 if (e.type === 'msg') {
                     addBulletScreens(`${message.from}: ${e.value}`);
                 } else if (e.type === 'event') {
-                    let ehs = {
+                    const ehs = {
                         'pencil': usePencil,
                         'eraser': useEraser,
                         'rollback': useRollback,
@@ -230,37 +243,5 @@
                 }
             }
         });
-        return client.getConversation(convId);
-    }).then(function (conversation) {
-        console.log(`conv init ok...`);
-        conv = conversation;
-    }).catch(console.error.bind(console));
-
-    function sendMsg(msg) {
-        if (msg.trim() !== '') {
-            conv.send(new AV.TextMessage(JSON.stringify({
-                'type': 'msg',
-                'value': msg
-            }))).then(function (message) {
-                console.log(message.text + " send!");
-            }).catch(console.error.bind(console));
-        }
     }
-    window.document.body.onload = () => {
-        document.title = `${roomName} by ${createBy}`;
-        initCanvas();
-
-        let msgInput = document.getElementById('message');
-        let sendBtn = document.getElementById('send');
-        sendBtn.onclick = function (e) {
-            sendMsg(msgInput.value);
-        };
-        msgInput.onkeypress = function (e) {
-            var key = e.which || e.keyCode;
-            if (key === 13) { // 13 is enter
-                sendMsg(msgInput.value);
-            }
-        };
-    }
-
 })(jQuery);
