@@ -16,8 +16,6 @@ ws.get('/ws/health_monitor', async (ctx) => {
     let imClient = await lc.realtime.createIMClient(createBy);
     let conv = await imClient.getConversation(room.get('convId'));
     ctx.websocket.on('message', (message) => {
-        // await redis.SETEX(`${ctx.session.userName}`, 5, 1);
-        // await redis.hset(ctx.message.roomId, ctx.session.userName, 1);
         ctx.websocket.send(JSON.stringify({
             'code': code.RESP_CODE.OK, 'msg': message
         }));
