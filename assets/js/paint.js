@@ -197,6 +197,14 @@
         document.getElementById('pencil').onclick = usePencil;
         document.getElementById('eraser').onclick = useEraser;
         document.getElementById('rollback').onclick = useRollback;
+
+        document.getElementById('logout').onclick = (e) => {
+            if (confirm("确认嘛？")) {
+                getAjax('/logout', (resp) => {
+                    window.location = "/login";
+                });
+            }
+        };
     }
     function startGame() {
         imClient.on('message', function (message, conversation) {

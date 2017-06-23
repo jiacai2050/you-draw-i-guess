@@ -4,6 +4,15 @@ const api = require('koa-router')();
 const lc = require('../lib/leancloud');
 const config = require('../config');
 
+let routerFiles = fs.readdirSync(__dirname);
+for (let rf of routerFiles) {
+    if (!/index/.test(rf) && /.*js$/.test(rf)) {
+        let prefix = rf.slice(0, -3);
+        console.log(`add router [${prefix}] to hander [${rf}]`);
+        api.use(`/${prefix}`, require(path.join(__dirname, rf)).routes());
+    }
+}
+
 api.get('/', async(ctx) => {
     await ctx.render('canvas', {
         'convId': config.leancloud.convId,
