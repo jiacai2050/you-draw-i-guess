@@ -2,12 +2,11 @@
 
     let canvas = null;
     let ctx = null;
+    let points = [];
     class CanvasStatus {
         constructor() {
             this.FLAG_PENCEL = 0b01;
             this.FLAG_ERASER = 0b10;
-            //  1  pencil
-            //  2  eraser
             this.current = 0;
             this.last = this.FLAG_PENCEL; // 默认为绘画状态
         }
@@ -46,8 +45,11 @@
         const msgInput = document.getElementById('message');
         const sendBtn = document.getElementById('send');
         sendBtn.onclick = function (e) {
-            addBulletScreens(`${currentUserName}: ${msgInput.value}`);
-            sendMessage({ 'type': 'msg', 'value': msgInput.value });
+            if (msgInput.value.trim() !== '') {
+                addBulletScreens(`${currentUserName}: ${msgInput.value}`);
+                sendMessage({ 'type': 'msg', 'value': msgInput.value });
+                msgInput.value = '';
+            }
         };
         msgInput.onkeypress = function (e) {
             var key = e.which || e.keyCode;
@@ -89,7 +91,6 @@
         ctx.moveTo(x, y);
 
     }
-    let points = [];
     function touchMoveHandler(e) {
 
         if (canvasStatus.inWorking()) {
