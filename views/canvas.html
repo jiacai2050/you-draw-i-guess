@@ -12,6 +12,13 @@
     const currentUserName = '<%= currentUserName %>';
     const convId = '<%= convId %>';
 
+
+    const realtime = new Realtime({
+        appId: appId,
+        region: 'cn', // 美国节点为 "us"
+        noBinary: true,
+    });
+
 </script>
 <script type="text/javascript" src="/js/paint.js"></script>
 <div class="main">

@@ -58,17 +58,10 @@
             }
         };
     }
-
-    const realtime = new Realtime({
-        appId: appId,
-        region: 'cn', // 美国节点为 "us"
-        noBinary: true,
-    });
     const imClient = await realtime.createIMClient(currentUserName);
     let conv = await imClient.getConversation(convId);
     conv = await conv.join();
     startGame();
-
 
     async function sendMessage(msg) {
         const sent = await conv.send(new AV.TextMessage(JSON.stringify(msg)));
@@ -155,7 +148,6 @@
                 'src': 'eraser'
             });
         }
-
     };
     function useRollback(e) {
         if (!e.remote) {
@@ -234,8 +226,8 @@
             }
         };
     }
-    function startGame() {
-        imClient.on('message', function (message, conversation) {
+    async function startGame() {
+        const messageHandler = (message) => {
             const text = JSON.parse(message.text);
             if (Array.isArray(text)) {
                 const points = text;
@@ -278,6 +270,19 @@
                     console.log(`get unknown ${text}...`)
                 }
             }
+        }
+        imClient.on('message', function (message, conversation) {
+            if (conversation.id === convId) {
+                messageHandler(message);
+            }
         });
+        const historyMsgs = await conv.queryMessages({ 'limit': 100 });
+        for (const m of historyMsgs) {
+            // 忽略弹幕
+            if (JSON.parse(m.text).type !== 'msg') {
+                messageHandler(m);
+            }
+
+        }
     }
 })(jQuery);
