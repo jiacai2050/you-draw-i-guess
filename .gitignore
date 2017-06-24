@@ -1,4 +1,5 @@
 .leancloud/
 node_modules/
+routers/debug.js
 debug.js
 env.sh
