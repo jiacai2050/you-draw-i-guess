@@ -23,14 +23,10 @@ app.use(async (ctx, next) => {
     await next();
     const ms = new Date() - start;
     ctx.set('X-Response-Time', `${ms}ms`);
-}).use(async (ctx, next) => {
-    const start = new Date();
-    await next();
-    const ms = new Date() - start;
     if (process.env.NODE_ENV === 'production') {
         console.log(`${start}<||>${ctx.headers['x-real-ip']}<||>${ctx.method}<||>${ctx.url}<||>${ms}ms<||>${ctx.headers['user-agent']}`);
-    }
-}).use(serve(path.join(__dirname, 'assets')))
+    }})
+    .use(serve(path.join(__dirname, 'assets')))
     .use(async (ctx, next) => {
         const whitePaths = ['/debug', '/login'];
         if (whitePaths.indexOf(ctx.path) > -1 || ctx.headers['host'].startsWith('docker')) {

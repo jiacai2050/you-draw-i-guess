@@ -7,7 +7,7 @@ const config = require('../config');
 let routerFiles = fs.readdirSync(__dirname);
 for (let rf of routerFiles) {
     if (!/index/.test(rf) && /.*js$/.test(rf)) {
-        let prefix = rf.slice(0, -3);
+        const prefix = rf.slice(0, -3);
         console.log(`add router [${prefix}] to hander [${rf}]`);
         api.use(`/${prefix}`, require(path.join(__dirname, rf)).routes());
     }
@@ -22,7 +22,7 @@ api.get('/', async(ctx) => {
 });
 api.get('/logout', async (ctx) => {
     try {
-        let success = await lc.Object.createWithoutData('SimpleUser', ctx.session.userId).destroy();
+        const success = await lc.Object.createWithoutData('SimpleUser', ctx.session.userId).destroy();
         if (success) {
             ctx.session = null;
             ctx.body = { 'code': 0 };
@@ -34,4 +34,5 @@ api.get('/logout', async (ctx) => {
         ctx.body = { 'code': 10000, 'errMsg': `退出失败:${e.message}` };
     }
 });
+
 module.exports = api;
