@@ -282,7 +282,12 @@
             if (JSON.parse(m.text).type !== 'msg') {
                 messageHandler(m);
             }
-
         }
+        const numOnlineMembers = document.getElementById('numOnlineMembers');
+        setInterval(async () => {
+            const c = await conv.count();
+            numOnlineMembers.innerHTML = c;
+        }, 2000);
+
     }
 })(jQuery);
