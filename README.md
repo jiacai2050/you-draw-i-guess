@@ -12,6 +12,10 @@
 - [数据存储](https://leancloud.cn/docs/storage_overview.html)
 - [云引擎](https://leancloud.cn/docs/leanengine_overview.html)
 
+## 文档
+
+- [直播视频录制](http://www.bilibili.com/video/av11608322/)
+- [演示文稿](doc/LeanMessage_dev_H5_games.pdf)
 
 ## 本地开发
 
