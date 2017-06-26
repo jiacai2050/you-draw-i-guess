@@ -14,7 +14,7 @@
 
 ## 文档
 
-- [直播视频录制](http://www.bilibili.com/video/av11608322/)
+- 直播视频：[bilibili](http://www.bilibili.com/video/av11608322/)、[腾讯视频](https://v.qq.com/x/page/v0518yvahk3.html)
 - [演示文稿](doc/LeanMessage_dev_H5_games.pdf)
 
 ## 本地开发
