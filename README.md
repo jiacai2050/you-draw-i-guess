@@ -9,7 +9,7 @@
 用到的产品（按照依赖程度）：
 
 - [实时通信](https://leancloud.cn/docs/realtime_v2.html)
-- [数据存储](https://leancloud.cn/docs/storage_overview.html)
+- [数据存储](https://leancloud.cn/docs/storage_overview.html)，用户注册、登录、退出
 - [云引擎](https://leancloud.cn/docs/leanengine_overview.html)
 
 ## 文档

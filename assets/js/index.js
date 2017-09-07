@@ -41,6 +41,7 @@
 
     window.document.body.onload = () => {
         initCanvas();
+        document.getElementById("logout").value = `${currentUserName}，退出`; 
 
         const msgInput = document.getElementById('message');
         const sendBtn = document.getElementById('send');
@@ -58,7 +59,7 @@
             }
         };
     }
-    const imClient = await realtime.createIMClient(currentUserName);
+    const imClient = await realtime.createIMClient(currentUser);
     let conv = await imClient.getConversation(convId);
     conv = await conv.join();
     startGame();
@@ -220,9 +221,8 @@
 
         document.getElementById('logout').onclick = (e) => {
             if (confirm("确认嘛？")) {
-                getAjax('/logout', (resp) => {
-                    window.location = "/login";
-                });
+                  AV.User.logOut();
+                  window.location = '/login';
             }
         };
     }

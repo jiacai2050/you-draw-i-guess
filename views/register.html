@@ -5,10 +5,10 @@
         appKey: "<%= lcAppKey %>"
     });
     window.onload = () => {
-        let loginBtn = document.getElementById('login');
+        let registerBtn = document.getElementById('register');
         let usernameInput = document.getElementById('username');
         let passwordInput = document.getElementById('password');
-        let loginFn = (e) => {
+        let registerFn = (e) => {
             let username = usernameInput.value.trim();
             let password = passwordInput.value.trim();
             if (username === '') {
@@ -19,23 +19,24 @@
                 alert(`密码不能为空！！`);
                 return false;
             }
-            AV.User.logIn(username, password).then(function (loginedUser) {
-                window.location = '/';
+            var user = new AV.User();
+            user.setUsername(username);
+            user.setPassword(password);
+            user.signUp().then(function (loginedUser) {
+                // console.log(loginedUser);
+                window.location = '/login';
             }, (function (error) {
                 console.log(error);
                 alert(error.message);
             }));
 
         };
-        loginBtn.onclick = loginFn;
+        registerBtn.onclick = registerFn;
         passwordInput.onkeypress = (e) => {
             var key = e.which || e.keyCode;
             if (key === 13) { // 13 is enter
-                loginFn(e);
+                registerFn(e);
             }
-        }
-        document.getElementById('register').onclick = (e) => {
-            window.location = '/register';
         }
     }
 
@@ -48,8 +49,7 @@
         <p><input id="password" type="password" placeholder="密码..."></input>
         </p>
         <div class="btn-tools">
-            <p><input id="login" type="button" value="登录"></p>
-            <p><input id="register" type="button" value="还没账号，先注册"></p>
+            <input id="register" type="button" value="注册">
         </div>
     </div>
 </div>
